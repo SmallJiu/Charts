@@ -25,16 +25,16 @@ import java.util.HashMap;
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class HighlightBlock extends RenderType {
     protected static HighlightBlock INSTANCE = new HighlightBlock();
-    public static final ColorData COLOR_DATA = new ColorData(127, 255, 0, 0);
-    private static final HashMap<BlockPos, HeightLight> HEIGHT_LIGHTS = new HashMap<>();
-    private static final ArrayList<BlockPos> HEIGHT_LIGHTS_KEYS = new ArrayList<>();
+    public static final ColorData COLOR_DATA = new ColorData(255, 0, 0);
+    protected static final HashMap<BlockPos, HeightLight> HEIGHT_LIGHTS = new HashMap<>();
+    protected static final ArrayList<BlockPos> HEIGHT_LIGHTS_KEYS = new ArrayList<>();
     public static void highlight(BlockPos pos, int m, int s, int tick) {
         if (!HEIGHT_LIGHTS.containsKey(pos)) {
             HEIGHT_LIGHTS_KEYS.add(pos);
             HEIGHT_LIGHTS.put(pos, new HeightLight((((m * 60L) + s) * 20) + tick, pos));
         }
     }
-    private static final RenderType CUBE_RENDER = create(
+    protected static final RenderType CUBE_RENDER = create(
             "color_cube",
             DefaultVertexFormat.POSITION_COLOR,
             VertexFormat.Mode.QUADS,
@@ -62,6 +62,7 @@ public class HighlightBlock extends RenderType {
                     .setShaderState(POSITION_COLOR_SHADER)
                     .setLightmapState(NO_LIGHTMAP)
                     .setWriteMaskState(COLOR_DEPTH_WRITE)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
                     .setTextureState(NO_TEXTURE)
                     .createCompositeState(true)
     );
@@ -85,17 +86,20 @@ public class HighlightBlock extends RenderType {
                     light.init = true;
                     light.endTime = gt + light.lightTime;
                 }
-                if (false && gt >= light.endTime) {
+                if (gt >= light.endTime) {
                     HEIGHT_LIGHTS_KEYS.remove(i);
                     HEIGHT_LIGHTS.remove(light.pos);
                 }else {
-                    INSTANCE.render(light.pos, event.getPoseStack(), event.getProjectionMatrix(), event.getCamera());
+                    light.canRender = !light.canRender;
+                    if (light.canRender) {
+                        INSTANCE.render(light, event.getPoseStack(), event.getProjectionMatrix(), event.getCamera());
+                    }
                 }
             }
         }
     }
 
-    public void render(BlockPos pos, PoseStack stack, Matrix4f pro, Camera camera) {
+    public void render(HeightLight light, PoseStack stack, Matrix4f pro, Camera camera) {
         if (GameRenderer.getPositionColorShader() == null) {
             return;
         }
@@ -104,9 +108,12 @@ public class HighlightBlock extends RenderType {
                 this.vertex = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             }
             BufferBuilder buffer = new BufferBuilder(CUBE_RENDER.bufferSize() * 8);
-
+            stack.pushPose();
+            Vec3 offset = camera.getPosition().reverse();
+            stack.translate(offset.x, offset.y, offset.z);
             buffer.begin(CUBE_RENDER.mode(), CUBE_RENDER.format());
-            this.drawCube(1, this.getColor(), pos, stack, buffer);
+
+            this.drawCube(0.8f, light, stack, buffer);
 
             this.vertex.bind();
             this.vertex.upload(buffer.end());
@@ -117,25 +124,19 @@ public class HighlightBlock extends RenderType {
                     GlStateManager.SourceFactor.SRC_ALPHA,
                     GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA
             );
+            RenderSystem.disableDepthTest();
             RenderSystem.disableCull();
-            stack.pushPose();
-            Vec3 offset = camera.getPosition().reverse();
-            stack.translate(offset.x, offset.y, offset.z);
             this.vertex.bind();
-            this.vertex.drawWithShader(
-                    stack.last().pose(),
-                    pro,
-                    GameRenderer.getPositionColorShader()
-            );
+            this.vertex.drawWithShader(RenderSystem.getModelViewMatrix(), pro, GameRenderer.getPositionColorShader());
             VertexBuffer.unbind();
             stack.popPose();
             RenderSystem.enableCull();
         }
     }
 
-    public void drawCube(float size, ColorData color, BlockPos pos, PoseStack stack, BufferBuilder buf) {
+    public void drawCube(float size, HeightLight light, PoseStack stack, BufferBuilder buf) {
         float half = size / 2f;
-        Vec3 c = pos.getCenter();
+        Vec3 c = light.pos.getCenter();
         AABB box = new AABB(c.x - half, c.y - half, c.z - half, c.x + half, c.y + half, c.z + half);
 
         Vec3 topRight = new Vec3(box.maxX, box.maxY, box.maxZ);
@@ -146,15 +147,15 @@ public class HighlightBlock extends RenderType {
         Vec3 bottomRight2 = new Vec3(box.maxX, box.minY, box.minZ);
         Vec3 bottomLeft2 = new Vec3(box.minX, box.minY, box.minZ);
         Vec3 topLeft2 = new Vec3(box.minX, box.maxY, box.minZ);
-        drawSide(topRight, topLeft, bottomRight, bottomLeft, color, buf, stack);
-        drawSide(topRight2, topRight, bottomRight2, bottomRight, color, buf, stack);
-        drawSide(topLeft2, topRight2, bottomLeft2, bottomRight2, color, buf, stack);
-        drawSide(topLeft, topLeft2, bottomLeft, bottomLeft2, color, buf, stack);
-        drawSide(topLeft2, topRight2, topLeft, topRight, color, buf, stack);
-        drawSide(bottomLeft2, bottomRight2, bottomLeft, bottomRight, color, buf, stack);
+        drawSide(topRight, topLeft, bottomRight, bottomLeft, light.color, buf, stack);
+        drawSide(topRight2, topRight, bottomRight2, bottomRight, light.color, buf, stack);
+        drawSide(topLeft2, topRight2, bottomLeft2, bottomRight2, light.color, buf, stack);
+        drawSide(topLeft, topLeft2, bottomLeft, bottomLeft2, light.color, buf, stack);
+        drawSide(topLeft2, topRight2, topLeft, topRight, light.color, buf, stack);
+        drawSide(bottomLeft2, bottomRight2, bottomLeft, bottomRight, light.color, buf, stack);
     }
 
-    private void drawSide(Vec3 tr, Vec3 tl, Vec3 br, Vec3 bl, ColorData color, VertexConsumer buf, PoseStack pose) {
+    protected void drawSide(Vec3 tr, Vec3 tl, Vec3 br, Vec3 bl, ColorData color, VertexConsumer buf, PoseStack pose) {
         Matrix4f mat = pose.last().pose();
         buf.vertex(mat, (float) tr.x, (float) tr.y, (float) tr.z).color(color.getRf(), color.getGf(), color.getBf(), color.getAf()).endVertex();
         buf.vertex(mat, (float) br.x, (float) br.y, (float) br.z).color(color.getRf(), color.getGf(), color.getBf(), color.getAf()).endVertex();
@@ -165,8 +166,11 @@ public class HighlightBlock extends RenderType {
     public static class HeightLight {
         public final long lightTime;
         public final BlockPos pos;
-        private boolean init;
-        private long endTime = -1;
+        protected final ColorData color = INSTANCE.getColor().copy();
+        protected boolean
+                init,
+                canRender;
+        protected long endTime;
 
         public HeightLight(long lightTime, BlockPos pos) {
             this.lightTime = lightTime;
@@ -175,10 +179,10 @@ public class HighlightBlock extends RenderType {
     }
 
     public static class ColorData {
-        float a;
-        float r;
-        float g;
-        float b;
+        public float a;
+        public float r;
+        public float g;
+        public float b;
 
         public ColorData(float a, float r, float g, float b) {
             this.a = a;
@@ -263,6 +267,10 @@ public class HighlightBlock extends RenderType {
                 return cd.toARGB() == toARGB();
             }
             return false;
+        }
+
+        public ColorData copy() {
+            return new ColorData(a, r, g, b);
         }
     }
 }

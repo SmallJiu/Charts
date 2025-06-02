@@ -5,8 +5,8 @@
   "charts.time.hour": "每 %s 时",
   "charts.time.day": "每 %s 天",
   "charts.display_mode": "展示模式",
-  "charts.display_block.0": "方块维度: %s, 当前维度: %s",
-  "charts.display_block.1": "显示具体方块",
+  "charts.display_block": "高亮此方块",
+  "charts.display_block.unequal_dim": "玩家所在维度与方块所在维度不一致. 方块/玩家: %s / %s",
 
   "info.config.clear": "清空",
   "info.config.reload": "重载",

@@ -5,8 +5,8 @@
   "charts.time.hour": "Every %s Hours",
   "charts.time.day": "Every %s Days",
   "charts.display_mode": "Display Mode",
-  "charts.display_block.0": "Block dimension: %s, on dimension: %s",
-  "charts.display_block.1": "Display actual blocks",
+  "charts.display_block": "Highlight this block",
+  "charts.display_block.unequal_dim": "The player dimension not equal block dimension. Blocks/Player: %s / %s",
 
   "info.config.clear": "Clear",
   "info.config.reload": "Reload",

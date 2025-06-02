@@ -108,6 +108,9 @@ public class GuiCharts extends Screen {
         if (!event.player.level().isClientSide()) return;
         if (event.phase == TickEvent.Phase.START) {
             for (ChartKey key : GuiCharts.DATA_MAP.keySet()) {
+                if (!Objects.equals(key.dimension, event.player.level().dimension())) {
+                    continue;
+                }
                 if (event.player.level().getBlockEntity(key.pos) == null
                 || DATA_MAP.get(key).values.isEmpty()
                 || DATA_MAP.get(key).values.get(0).times.get(0) == Data.EMPTY_TIME) {
@@ -256,12 +259,16 @@ public class GuiCharts extends Screen {
                 ChatFormatting.RESET, ChatFormatting.AQUA, this.key.pos.getZ()
         ));
         this.addRenderableWidget(new ButtonNoBackground(Button.builder(text, btn->{
-                    HighlightBlock.highlight(this.key.pos, 0, 5, 0);
+                    if (Objects.equals(this.key.dimension.location(), Minecraft.getInstance().level.dimension().location())) {
+                        HighlightBlock.highlight(this.key.pos, 0, 10, 0);
+                    }else {
+                        Minecraft.getInstance().player.sendSystemMessage(Component.translatable("charts.display_block.unequal_dim", this.key.dimension.location(), Minecraft.getInstance().level.dimension().location()));
+                    }
                     Minecraft.getInstance().setScreen(null);
                 })
                 .pos(this.bgX + BG_WIDTH/2 - Minecraft.getInstance().font.width(text)/2, this.bgY + BG_HEIGHT + Minecraft.getInstance().font.lineHeight + 2)
                 .size(Minecraft.getInstance().font.width(text) + 4, Minecraft.getInstance().font.lineHeight)
-                .tooltip(Tooltip.create(Component.translatable("charts.display_block.0", this.key.dimension.location(), Minecraft.getInstance().level.dimension().location()).append(CommonComponents.NEW_LINE).append(Component.translatable("charts.display_block.1"))))
+                .tooltip(Tooltip.create(Component.translatable("charts.display_block")))
         ));
         this.setSelectData(true, this.currentData, this.currentTime, this.currentTimeData);
     }
@@ -333,7 +340,8 @@ public class GuiCharts extends Screen {
                         List<IChartsDataHandler.Data> timeDataList = time.dataMap.get(timeDataID);
                         this.currentTimeData = timeDataID;
                         this.graphs.clearData();
-                        for (IChartsDataHandler.Data value : timeDataList) {
+                        for (int i = 0; i < timeDataList.size(); i++) {
+                            IChartsDataHandler.Data value = timeDataList.get(i);
                             this.graphs.addData(new GuiLongComponentGraph.Graph(value.data, data.getColor(timeDataID), new GuiGraph.ColorText(value.getName(), data.getColor(timeDataID))));
                         }
                         time.setCurrentDataID(timeDataID);
