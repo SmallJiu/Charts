@@ -1,0 +1,18 @@
+{
+  "charts.time.tick": "每 %s 刻",
+  "charts.time.sec": "每 %s 秒",
+  "charts.time.minute": "每 %s 分",
+  "charts.time.hour": "每 %s 时",
+  "charts.time.day": "每 %s 天",
+  "charts.display_mode": "展示模式",
+  "charts.display_block.0": "方块维度: %s, 当前维度: %s",
+  "charts.display_block.1": "显示具体方块",
+
+  "info.config.clear": "清空",
+  "info.config.reload": "重载",
+  "info.config.undo": "撤回操作",
+  "info.config.reset": "重置至默认",
+  "info.config.save": "保存并退出",
+  "info.config.save.0": "使用 'Esc键' 退出但不保存配置文件",
+  "info.config.world_restart": "需要重启世界"
+}

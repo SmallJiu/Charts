@@ -1,0 +1,18 @@
+{
+  "charts.time.tick": "Every %s Ticks",
+  "charts.time.sec": "Every %s Seconds",
+  "charts.time.minute": "Every %s Minutes",
+  "charts.time.hour": "Every %s Hours",
+  "charts.time.day": "Every %s Days",
+  "charts.display_mode": "Display Mode",
+  "charts.display_block.0": "Block dimension: %s, on dimension: %s",
+  "charts.display_block.1": "Display actual blocks",
+
+  "info.config.clear": "Clear",
+  "info.config.reload": "Reload",
+  "info.config.undo": "Undo Changes",
+  "info.config.reset": "Reset to Default",
+  "info.config.save": "Save and Exit",
+  "info.config.save.0": "Use 'Esc' Exit but not Save",
+  "info.config.world_restart": "Need restart world."
+}
