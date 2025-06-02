@@ -11,6 +11,7 @@ import cat.jiu.charts.ui.element.ButtonNoBackground;
 import cat.jiu.charts.ui.element.ChartList;
 import cat.jiu.charts.ui.element.GuiGraph;
 import cat.jiu.charts.ui.element.GuiLongComponentGraph;
+import cat.jiu.charts.utils.client.HighlightBlock;
 import cat.jiu.charts.utils.client.RenderUtils;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -255,14 +256,13 @@ public class GuiCharts extends Screen {
                 ChatFormatting.RESET, ChatFormatting.AQUA, this.key.pos.getZ()
         ));
         this.addRenderableWidget(new ButtonNoBackground(Button.builder(text, btn->{
-
+                    HighlightBlock.highlight(this.key.pos, 0, 5, 0);
                     Minecraft.getInstance().setScreen(null);
                 })
                 .pos(this.bgX + BG_WIDTH/2 - Minecraft.getInstance().font.width(text)/2, this.bgY + BG_HEIGHT + Minecraft.getInstance().font.lineHeight + 2)
                 .size(Minecraft.getInstance().font.width(text) + 4, Minecraft.getInstance().font.lineHeight)
                 .tooltip(Tooltip.create(Component.translatable("charts.display_block.0", this.key.dimension.location(), Minecraft.getInstance().level.dimension().location()).append(CommonComponents.NEW_LINE).append(Component.translatable("charts.display_block.1"))))
         ));
-
         this.setSelectData(true, this.currentData, this.currentTime, this.currentTimeData);
     }
 
