@@ -24,7 +24,7 @@ import java.util.HashMap;
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class HighlightBlock extends RenderType {
-    public static final HighlightBlock INSTANCE = new HighlightBlock();
+    protected static HighlightBlock INSTANCE = new HighlightBlock();
     public static final ColorData COLOR_DATA = new ColorData(127, 255, 0, 0);
     private static final HashMap<BlockPos, HeightLight> HEIGHT_LIGHTS = new HashMap<>();
     private static final ArrayList<BlockPos> HEIGHT_LIGHTS_KEYS = new ArrayList<>();
@@ -71,6 +71,10 @@ public class HighlightBlock extends RenderType {
         super("", DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES, 0, false, false, () -> {}, () -> {});
     }
 
+    public ColorData getColor() {
+        return COLOR_DATA;
+    }
+
     @SubscribeEvent
     public static void onRenderLevelStageEvent(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES && !HEIGHT_LIGHTS.isEmpty()) {
@@ -100,10 +104,9 @@ public class HighlightBlock extends RenderType {
                 this.vertex = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             }
             BufferBuilder buffer = new BufferBuilder(CUBE_RENDER.bufferSize() * 8);
-            Vec3 offset = camera.getPosition().reverse();
 
             buffer.begin(CUBE_RENDER.mode(), CUBE_RENDER.format());
-            this.drawCube(1, COLOR_DATA, pos, stack, buffer);
+            this.drawCube(1, this.getColor(), pos, stack, buffer);
 
             this.vertex.bind();
             this.vertex.upload(buffer.end());
@@ -116,6 +119,7 @@ public class HighlightBlock extends RenderType {
             );
             RenderSystem.disableCull();
             stack.pushPose();
+            Vec3 offset = camera.getPosition().reverse();
             stack.translate(offset.x, offset.y, offset.z);
             this.vertex.bind();
             this.vertex.drawWithShader(
