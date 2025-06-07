@@ -100,7 +100,7 @@ public class HighlightBlock extends RenderType {
     }
 
     public void render(HeightLight light, PoseStack stack, Matrix4f pro, Camera camera) {
-        if (GameRenderer.getPositionColorShader() == null) {
+        if (GameRenderer.getPositionColorShader() == null || RenderSystem.getModelViewMatrix()) {
             return;
         }
         if (camera.isInitialized()) {
@@ -127,7 +127,11 @@ public class HighlightBlock extends RenderType {
             RenderSystem.disableDepthTest();
             RenderSystem.disableCull();
             this.vertex.bind();
-            this.vertex.drawWithShader(RenderSystem.getModelViewMatrix(), pro, GameRenderer.getPositionColorShader());
+            this.vertex.drawWithShader(
+                    RenderSystem.getModelViewMatrix(),
+                    pro,
+                    GameRenderer.getPositionColorShader()
+            );
             VertexBuffer.unbind();
             stack.popPose();
             RenderSystem.enableCull();
