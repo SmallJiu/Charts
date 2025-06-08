@@ -100,7 +100,7 @@ public class HighlightBlock extends RenderType {
     }
 
     public void render(HeightLight light, PoseStack stack, Matrix4f pro, Camera camera) {
-        if (GameRenderer.getPositionColorShader() == null || RenderSystem.getModelViewMatrix()) {
+        if (GameRenderer.getPositionColorShader() == null || RenderSystem.getModelViewMatrix() == null) {
             return;
         }
         if (camera.isInitialized()) {
